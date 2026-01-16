@@ -14,7 +14,7 @@ __pycache__/
 # 忽略临时文件
 profile/
 fallback/
-CelestialFlow.egg-info/
+celestialtree.egg-info/
 .pytest_cache
 
 examples/

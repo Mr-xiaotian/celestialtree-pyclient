@@ -35,7 +35,9 @@ def _node_label(node: Dict[str, Any]) -> str:
     return label
 
 
-def format_descendants(node: Dict[str, Any], prefix: str = "", is_last: bool = True) -> str:
+def format_descendants(
+    node: Dict[str, Any], prefix: str = "", is_last: bool = True
+) -> str:
     """
     将 descendants 树结构格式化为树状文本。
     兼容:
@@ -143,4 +145,3 @@ def format_provenance_forest(forest: List[Dict[str, Any]]) -> str:
         lines.append("")
 
     return "\n".join(lines)
-

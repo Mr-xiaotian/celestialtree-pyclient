@@ -92,7 +92,7 @@ class Client:
 
         self.raise_for_status(r)
         return r.json()
-    
+
     def ancestors(self, event_id: int) -> List[int]:
         self.init_session()
 
@@ -120,8 +120,10 @@ class Client:
 
         self.raise_for_status(r)
         return r.json()
-    
-    def descendants_batch(self, event_ids: List[int], view: str = "struct") -> List[Dict[str, Any]]:
+
+    def descendants_batch(
+        self, event_ids: List[int], view: str = "struct"
+    ) -> List[Dict[str, Any]]:
         """
         Batch descendants.
         POST /descendants
@@ -145,7 +147,7 @@ class Client:
 
         self.raise_for_status(r)
         return r.json()
-    
+
     def provenance(self, event_id: int, view: str = "struct") -> Dict[str, Any]:
         self.init_session()
 
@@ -161,8 +163,10 @@ class Client:
 
         self.raise_for_status(r)
         return r.json()
-    
-    def provenance_batch(self, event_ids: List[int], view: str = "struct") -> List[Dict[str, Any]]:
+
+    def provenance_batch(
+        self, event_ids: List[int], view: str = "struct"
+    ) -> List[Dict[str, Any]]:
         """
         Batch provenance (parents tree).
         POST /provenance
@@ -273,19 +277,19 @@ class NullClient:
 
     def children(self, *args, **kwargs):
         return []
-    
+
     def ancestors(self, *args, **kwargs):
         return []
 
     def descendants(self, *args, **kwargs):
         return None
-    
+
     def descendants_batch(self, *args, **kwargs):
         return None
-    
+
     def provenance(self, *args, **kwargs):
         return None
-    
+
     def provenance_batch(self, *args, **kwargs):
         return None
 
