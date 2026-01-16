@@ -56,15 +56,13 @@ class Client:
 
         if payload is not None:
             if isinstance(payload, (dict, list)):
-                body["payload"] = json.dumps(payload).encode("utf-8")
-            elif isinstance(payload, (bytes, bytearray)):
                 body["payload"] = payload
             else:
-                raise TypeError("payload must be bytes or dict")
+                raise TypeError("payload must be JSON-serializable")
 
         r = self.session.post(
             f"{self.base_url}/emit",
-            data=json.dumps(body),
+            json=body,
             timeout=self.timeout,
         )
 
