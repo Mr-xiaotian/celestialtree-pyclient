@@ -97,27 +97,20 @@ def format_unix_nano(ts: int, tz=timezone.utc) -> str:
 class NodeLabelStyle:
     """
     模板渲染风格：
-    - template: 例如 "{id} {ref}{type_paren}{time_at}"
-    - missing: 字段缺失时的替代值（默认空串）
+    - template: 例如 "{base} ({type}) @{time}"
+    - missing: 字段缺失时的替代值（默认 `-` ）
     """
-    template: str = "{id}{ref}{type_paren}{time_at}"
-    missing: str = ""
+    template: str = "{base} ({type}) @{time}"
+    missing: str = "-"
 
     def render(self, node: Dict[str, Any]) -> str:
         ctx: Dict[str, Any] = dict(node)
 
-        # -------- 派生字段（你原来就有的） --------
-        ctx.setdefault("ref", " [Ref]" if node.get("is_ref") else "")
-
-        ntype = node.get("type")
-        ctx.setdefault("type_paren", f" ({ntype})" if ntype else "")
+        # -------- 派生字段 --------
+        node_id, is_ref = node.get("id"), node.get("is_ref")
+        ctx.setdefault("base", f"{node_id} [Ref]" if is_ref else node_id)
 
         ts = node.get("time_unix_nano")
-        ctx.setdefault(
-            "time_at",
-            f" @{format_unix_nano(ts)}" if ts is not None else ""
-        )
-
         ctx.setdefault(
             "time",
             format_unix_nano(ts) if ts is not None else self.missing
@@ -125,7 +118,6 @@ class NodeLabelStyle:
 
         ctx.setdefault("payload_json", json.dumps(node.get("payload"), ensure_ascii=False, sort_keys=True))
 
-        # -------- 🔑 核心变化在这里 --------
         formatter = DotPathFormatter(missing=self.missing)
         return formatter.format(self.template, **ctx)
 
