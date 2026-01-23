@@ -39,7 +39,7 @@ class Client:
         type_: str,
         parents: Optional[List[int]] = None,
         message: Optional[str] = None,
-        payload: Optional[bytes | dict] = None,
+        payload: Optional[list | dict] = None,
     ) -> int:
         """
         Emit a new event into CelestialTree.
