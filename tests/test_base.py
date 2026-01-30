@@ -28,7 +28,7 @@ def test_payload_roundtrip():
         "type": "bench",
         "parents": [],
         "message": "bench payload 1B",
-        "payload": 0, 
+        "payload": 0,
     }
     event_id = client.emit("test", payload=payload)
     event = client.get_event(event_id)

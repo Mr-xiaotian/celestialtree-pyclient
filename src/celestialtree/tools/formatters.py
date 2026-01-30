@@ -100,6 +100,7 @@ class NodeLabelStyle:
     - template: 例如 "{base} ({type}) @{time}"
     - missing: 字段缺失时的替代值（默认 `-` ）
     """
+
     template: str = "{base} ({type}) @{time}"
     missing: str = "-"
 
@@ -111,19 +112,21 @@ class NodeLabelStyle:
         ctx.setdefault("base", f"{node_id} [Ref]" if is_ref else node_id)
 
         ts = node.get("time_unix_nano")
-        ctx.setdefault(
-            "time",
-            format_unix_nano(ts) if ts is not None else self.missing
-        )
+        ctx.setdefault("time", format_unix_nano(ts) if ts is not None else self.missing)
 
-        ctx.setdefault("payload_json", json.dumps(node.get("payload"), ensure_ascii=False, sort_keys=True))
+        ctx.setdefault(
+            "payload_json",
+            json.dumps(node.get("payload"), ensure_ascii=False, sort_keys=True),
+        )
 
         formatter = DotPathFormatter(missing=self.missing)
         return formatter.format(self.template, **ctx)
 
+
 DEFAULT_LABEL_STYLE = NodeLabelStyle()
 
 # ------------------- 你的树格式化：加一个 label_style 参数 -------------------
+
 
 def format_descendants(
     node: Dict[str, Any],
@@ -140,13 +143,17 @@ def format_descendants(
         next_prefix = prefix + ("    " if is_last else "│   ")
         for i, child in enumerate(children):
             lines.append(
-                format_descendants(child, next_prefix, i == len(children) - 1, label_style)
+                format_descendants(
+                    child, next_prefix, i == len(children) - 1, label_style
+                )
             )
 
     return "\n".join(lines)
 
 
-def format_descendants_root(tree: Dict[str, Any], label_style: NodeLabelStyle = DEFAULT_LABEL_STYLE) -> str:
+def format_descendants_root(
+    tree: Dict[str, Any], label_style: NodeLabelStyle = DEFAULT_LABEL_STYLE
+) -> str:
     lines = [label_style.render(tree)]
     children = tree.get("children") or []
     for i, child in enumerate(children):
@@ -154,7 +161,9 @@ def format_descendants_root(tree: Dict[str, Any], label_style: NodeLabelStyle = 
     return "\n".join(lines)
 
 
-def format_descendants_forest(forest: List[Dict[str, Any]], label_style: NodeLabelStyle = DEFAULT_LABEL_STYLE) -> str:
+def format_descendants_forest(
+    forest: List[Dict[str, Any]], label_style: NodeLabelStyle = DEFAULT_LABEL_STYLE
+) -> str:
     lines = []
     for tree in forest:
         lines.append(format_descendants_root(tree, label_style))
@@ -176,12 +185,18 @@ def format_provenance(
     if parents:
         next_prefix = prefix + ("    " if is_last else "│   ")
         for i, parent in enumerate(parents):
-            lines.append(format_provenance(parent, next_prefix, i == len(parents) - 1, label_style))
+            lines.append(
+                format_provenance(
+                    parent, next_prefix, i == len(parents) - 1, label_style
+                )
+            )
 
     return "\n".join(lines)
 
 
-def format_provenance_root(tree: Dict[str, Any], label_style: NodeLabelStyle = DEFAULT_LABEL_STYLE) -> str:
+def format_provenance_root(
+    tree: Dict[str, Any], label_style: NodeLabelStyle = DEFAULT_LABEL_STYLE
+) -> str:
     lines = [label_style.render(tree)]
     parents = tree.get("parents") or []
     for i, parent in enumerate(parents):
@@ -189,7 +204,9 @@ def format_provenance_root(tree: Dict[str, Any], label_style: NodeLabelStyle = D
     return "\n".join(lines)
 
 
-def format_provenance_forest(forest: List[Dict[str, Any]], label_style: NodeLabelStyle = DEFAULT_LABEL_STYLE) -> str:
+def format_provenance_forest(
+    forest: List[Dict[str, Any]], label_style: NodeLabelStyle = DEFAULT_LABEL_STYLE
+) -> str:
     lines = []
     for tree in forest:
         lines.append(format_provenance_root(tree, label_style))
