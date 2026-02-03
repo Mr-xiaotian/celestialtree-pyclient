@@ -1,23 +1,23 @@
 # CelestialTree PyClient
 
-A lightweight Python client for interacting with **CelestialTree**, providing event emission, lineage tracking, and basic querying capabilities.
+一个轻量级的 Python 客户端，用于与 **CelestialTree** 交互，提供事件上报、血缘（lineage）追踪以及基础查询能力。
 
-This client is designed to be embedded into task systems (such as CelestialFlow) to record and trace the lifecycle of tasks through a causal event tree.
+该客户端被设计为可嵌入到任务系统中（例如 CelestialFlow），用于记录并追踪任务在因果事件树中的完整生命周期。
 
-## Features
+## 功能特性
 
-- Emit structured events to a CelestialTree service
-- Track parent–child relationships between events
-- Designed for task execution and orchestration systems
-- Simple, dependency-light Python interface
+* 向 CelestialTree 服务发送结构化事件
+* 追踪事件之间的父子关系
+* 面向任务执行与编排系统进行设计
+* 接口简洁、依赖极少的 Python 客户端
 
-## Installation
+## 安装
 
 ```bash
 pip install celestialtree
 ```
 
-## Usage
+## 使用示例
 
 ```python
 from celestialtree import Client
@@ -29,16 +29,16 @@ client = Client(
 event_id = client.emit(
     event_type="task.success",
     parents=[123456],
-    message="Task completed successfully"
+    message="任务成功完成"
 )
 
 print(event_id)
 ```
 
-## Contributing
+## 参与贡献
 
-Contributions are welcome! Please feel free to submit issues, feature requests, or pull requests.
+欢迎任何形式的贡献！你可以提交 issue、功能请求，或者直接发起 pull request。
 
-## License
+## 许可证
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+本项目采用 MIT License 许可证，详情请参阅 [LICENSE](LICENSE) 文件。
