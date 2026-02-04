@@ -4,15 +4,37 @@ import requests
 from multiprocessing import Value as MPValue
 from typing import List, Optional, Dict, Any, Callable
 
+import grpc
+from google.protobuf import json_format
+from google.protobuf.struct_pb2 import Struct
+
+from .proto import celestialtree_pb2 as pb2
+from .proto import celestialtree_pb2_grpc as pb2_grpc
+
 
 class Client:
     """
-    Python client for CelestialTree HTTP API.
+    Python client for CelestialTree HTTP API (and optional gRPC).
     """
 
-    def __init__(self, host: str = "127.0.0.1", port: int = 7777, timeout: float = 5.0):
+    def __init__(
+        self,
+        host: str = "127.0.0.1",
+        port: int = 7777,
+        timeout: float = 5.0,
+        
+        grpc_host: Optional[str] = None,
+        grpc_port: int = 7778,
+        grpc_timeout: Optional[float] = None,
+        grpc_secure: bool = False,
+    ):
         self.base_url = f"http://{host}:{port}"
         self.timeout = timeout
+
+        self.grpc_host = grpc_host or host
+        self.grpc_port = grpc_port
+        self.grpc_timeout = grpc_timeout if grpc_timeout is not None else timeout
+        self.grpc_secure = grpc_secure
 
     def init_session(self):
         if hasattr(self, "session"):
@@ -25,6 +47,19 @@ class Client:
                 "Accept": "application/json",
             }
         )
+
+    def init_grpc(self):
+        if hasattr(self, "grpc_channel") and hasattr(self, "grpc_stub"):
+            return
+
+        target = f"{self.grpc_host}:{self.grpc_port}"
+        if self.grpc_secure:
+            creds = grpc.ssl_channel_credentials()
+            self.grpc_channel = grpc.secure_channel(target, creds)
+        else:
+            self.grpc_channel = grpc.insecure_channel(target)
+
+        self.grpc_stub = pb2_grpc.CelestialTreeServiceStub(self.grpc_channel)
 
     def raise_for_status(self, r: requests.Response):
         if not (200 <= r.status_code < 300):
@@ -68,6 +103,46 @@ class Client:
 
         self.raise_for_status(r)
         return r.json()["id"]
+
+    def emit_grpc(
+        self,
+        type_: str,
+        parents: Optional[List[int]] = None,
+        message: Optional[str] = None,
+        payload: Optional[list | dict] = None,
+    ) -> int:
+        """
+        Emit a new event into CelestialTree via gRPC.
+        Requires grpcio + generated pb2 / pb2_grpc.
+        """
+        self.init_grpc()
+
+        req = pb2.EmitRequest(
+            type=type_,
+            message=message or "",
+            parents=parents or [],
+        )
+
+        if payload is not None:
+            if not isinstance(payload, (dict, list)):
+                raise TypeError("payload must be JSON-serializable (dict or list)")
+
+            # proto field is google.protobuf.Struct (object). Struct 本身不支持 list 作为根。
+            # 所以：dict 直接塞；list 根的话用 {"_": payload} 包一层（服务端再原样存 JSON）
+            if isinstance(payload, list):
+                payload = {"_": payload}
+
+            st = Struct()
+            json_format.ParseDict(payload, st)
+            req.payload.CopyFrom(st)
+
+        try:
+            resp = self.grpc_stub.Emit(req, timeout=self.grpc_timeout)
+        except grpc.RpcError as e:
+            # 给你一个更像 HTTP raise_for_status 的报错体验
+            raise RuntimeError(f"grpc emit failed: {e.code().name}: {e.details()}") from e
+
+        return int(resp.id)
 
     def get_event(self, event_id: int) -> Dict[str, Any]:
         self.init_session()
