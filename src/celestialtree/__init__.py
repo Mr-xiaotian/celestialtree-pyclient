@@ -1,4 +1,5 @@
-from .client import Client, NullClient
+from .client import Client
+from .null_client import NullClient
 from .tools.formatters import (
     NodeLabelStyle,
     format_descendants_root,

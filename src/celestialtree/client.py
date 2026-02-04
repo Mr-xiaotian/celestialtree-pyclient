@@ -1,7 +1,6 @@
 import json
 import threading
 import requests
-from multiprocessing import Value as MPValue
 from typing import List, Optional, Dict, Any, Callable
 
 import grpc
@@ -334,40 +333,3 @@ class Client:
         t = threading.Thread(target=_run, daemon=daemon)
         t.start()
         return t
-
-
-class NullClient:
-    def __init__(self, event_id=None):
-        self.event_id = event_id if event_id is not None else MPValue("i", 0)
-
-    def emit(self, *args, **kwargs):
-        with self.event_id.get_lock():
-            self.event_id.value += 1
-            return self.event_id.value
-
-    def get_event(self, *args, **kwargs):
-        return None
-
-    def children(self, *args, **kwargs):
-        return []
-
-    def ancestors(self, *args, **kwargs):
-        return []
-
-    def descendants(self, *args, **kwargs):
-        return None
-
-    def descendants_batch(self, *args, **kwargs):
-        return None
-
-    def provenance(self, *args, **kwargs):
-        return None
-
-    def provenance_batch(self, *args, **kwargs):
-        return None
-
-    def heads(self):
-        return []
-
-    def subscribe(self, *args, **kwargs):
-        return None
