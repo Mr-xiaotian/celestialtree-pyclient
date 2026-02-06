@@ -25,14 +25,14 @@ _sym_db = _symbol_database.Default()
 from google.protobuf import struct_pb2 as google_dot_protobuf_dot_struct__pb2
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\'celestialtree/proto/celestialtree.proto\x12\x10\x63\x65lestialtree.v1\x1a\x1cgoogle/protobuf/struct.proto\"g\n\x0b\x45mitRequest\x12\x0c\n\x04type\x18\x01 \x01(\t\x12\x0f\n\x07message\x18\x02 \x01(\t\x12(\n\x07payload\x18\x03 \x01(\x0b\x32\x17.google.protobuf.Struct\x12\x0f\n\x07parents\x18\x04 \x03(\x04\"\x1a\n\x0c\x45mitResponse\x12\n\n\x02id\x18\x01 \x01(\x04\x32]\n\x14\x43\x65lestialTreeService\x12\x45\n\x04\x45mit\x12\x1d.celestialtree.v1.EmitRequest\x1a\x1e.celestialtree.v1.EmitResponseB\x1bZ\x19\x63\x65lestialtree/proto;protob\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\'celestialtree/proto/celestialtree.proto\x12\x10\x63\x65lestialtree.v1\x1a\x1cgoogle/protobuf/struct.proto\"g\n\x0b\x45mitRequest\x12\x0c\n\x04type\x18\x01 \x01(\t\x12\x0f\n\x07message\x18\x02 \x01(\t\x12(\n\x07payload\x18\x03 \x01(\x0b\x32\x17.google.protobuf.Struct\x12\x0f\n\x07parents\x18\x04 \x03(\x04\"\x1a\n\x0c\x45mitResponse\x12\n\n\x02id\x18\x01 \x01(\x04\x32]\n\x14\x43\x65lestialTreeService\x12\x45\n\x04\x45mit\x12\x1d.celestialtree.v1.EmitRequest\x1a\x1e.celestialtree.v1.EmitResponseB2Z0github.com/Mr-xiaotian/CelestialTree/proto;protob\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
 _builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'celestialtree.proto.celestialtree_pb2', _globals)
 if not _descriptor._USE_C_DESCRIPTORS:
   _globals['DESCRIPTOR']._loaded_options = None
-  _globals['DESCRIPTOR']._serialized_options = b'Z\031celestialtree/proto;proto'
+  _globals['DESCRIPTOR']._serialized_options = b'Z0github.com/Mr-xiaotian/CelestialTree/proto;proto'
   _globals['_EMITREQUEST']._serialized_start=91
   _globals['_EMITREQUEST']._serialized_end=194
   _globals['_EMITRESPONSE']._serialized_start=196

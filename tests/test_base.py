@@ -20,7 +20,7 @@ pytestmark = pytest.mark.skipif(
 )
 
 
-def test_payload_roundtrip():
+def test_payload_roundtrip_http():
     host, port = _get_base_url()
     client = Client(host, port)
 
@@ -31,6 +31,22 @@ def test_payload_roundtrip():
         "payload": 0,
     }
     event_id = client.emit("test", payload=payload)
+    event = client.get_event(event_id)
+
+    assert event["payload"] == payload
+
+
+def test_payload_roundtrip_grpc():
+    host, port = _get_base_url()
+    client = Client(host, port)
+
+    payload = {
+        "type": "bench",
+        "parents": [],
+        "message": "bench payload 1B",
+        "payload": 0,
+    }
+    event_id = client.emit_grpc("test", payload=payload)
     event = client.get_event(event_id)
 
     assert event["payload"] == payload
