@@ -26,6 +26,8 @@ class Client:
         grpc_port: int = 7778,
         grpc_timeout: Optional[float] = None,
         grpc_secure: bool = False,
+
+        transport: Optional[str] = None,
     ):
         self.base_url = f"http://{host}:{port}"
         self.timeout = timeout
@@ -34,6 +36,8 @@ class Client:
         self.grpc_port = grpc_port
         self.grpc_timeout = grpc_timeout if grpc_timeout is not None else timeout
         self.grpc_secure = grpc_secure
+
+        self.transport = transport if transport in ("http", "grpc") else "http"
 
     def init_session(self):
         if hasattr(self, "session"):
@@ -69,6 +73,20 @@ class Client:
     # ---------- Core APIs ----------
 
     def emit(
+        self,
+        type_: str,
+        parents: Optional[List[int]] = None,
+        message: Optional[str] = None,
+        payload: Optional[list | dict] = None,
+    ) -> int:
+        """
+        Emit a new event into CelestialTree.
+        """
+        if self.transport == "grpc":
+            return self.emit_grpc(type_, parents, message, payload)
+        return self.emit_http(type_, parents, message, payload)
+
+    def emit_http(
         self,
         type_: str,
         parents: Optional[List[int]] = None,
