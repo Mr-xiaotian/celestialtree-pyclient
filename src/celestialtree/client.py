@@ -19,22 +19,18 @@ class Client:
     def __init__(
         self,
         host: str = "127.0.0.1",
-        port: int = 7777,
-        timeout: float = 5.0,
-        
-        grpc_host: Optional[str] = None,
+        http_port: int = 7777,
         grpc_port: int = 7778,
-        grpc_timeout: Optional[float] = None,
+
+        timeout: float = 5.0,
         grpc_secure: bool = False,
-
         transport: Optional[str] = None,
-    ):
-        self.base_url = f"http://{host}:{port}"
-        self.timeout = timeout
 
-        self.grpc_host = grpc_host or host
-        self.grpc_port = grpc_port
-        self.grpc_timeout = grpc_timeout if grpc_timeout is not None else timeout
+    ):
+        self.http_addr = f"http://{host}:{http_port}"
+        self.grpc_addr = f"{host}:{grpc_port}"
+
+        self.timeout = timeout
         self.grpc_secure = grpc_secure
 
         self.transport = transport if transport in ("http", "grpc") else "http"
@@ -55,20 +51,25 @@ class Client:
         if hasattr(self, "grpc_channel") and hasattr(self, "grpc_stub"):
             return
 
-        target = f"{self.grpc_host}:{self.grpc_port}"
         if self.grpc_secure:
             creds = grpc.ssl_channel_credentials()
-            self.grpc_channel = grpc.secure_channel(target, creds)
+            self.grpc_channel = grpc.secure_channel(self.grpc_addr, creds)
         else:
-            self.grpc_channel = grpc.insecure_channel(target)
+            self.grpc_channel = grpc.insecure_channel(self.grpc_addr)
 
         self.grpc_stub = pb2_grpc.CelestialTreeServiceStub(self.grpc_channel)
 
     def raise_for_status(self, r: requests.Response):
-        if not (200 <= r.status_code < 300):
-            error = r.json().get("error", "request failed")
-            detail = r.json().get("detail", None)
+        if 200 <= r.status_code < 300:
+            return
+        
+        try:
+            j: dict = r.json()
+            error = j.get("error", "request failed")
+            detail = j.get("detail")
             raise RuntimeError(f"{error} ({detail})" if detail else error)
+        except Exception:
+            raise RuntimeError(f"request failed: HTTP {r.status_code}: {r.text[:300]}")
 
     # ---------- Core APIs ----------
 
@@ -113,7 +114,7 @@ class Client:
                 raise TypeError("payload must be JSON-serializable")
 
         r = self.session.post(
-            f"{self.base_url}/emit",
+            f"{self.http_addr}/emit",
             json=body,
             timeout=self.timeout,
         )
@@ -154,7 +155,7 @@ class Client:
             req.payload.CopyFrom(st)
 
         try:
-            resp = self.grpc_stub.Emit(req, timeout=self.grpc_timeout)
+            resp = self.grpc_stub.Emit(req, timeout=self.timeout)
         except grpc.RpcError as e:
             # 给你一个更像 HTTP raise_for_status 的报错体验
             raise RuntimeError(f"grpc emit failed: {e.code().name}: {e.details()}") from e
@@ -165,7 +166,7 @@ class Client:
         self.init_session()
 
         r = self.session.get(
-            f"{self.base_url}/event/{event_id}",
+            f"{self.http_addr}/event/{event_id}",
             timeout=self.timeout,
         )
 
@@ -176,7 +177,7 @@ class Client:
         self.init_session()
 
         r = self.session.get(
-            f"{self.base_url}/children/{event_id}",
+            f"{self.http_addr}/children/{event_id}",
             timeout=self.timeout,
         )
 
@@ -187,7 +188,7 @@ class Client:
         self.init_session()
 
         r = self.session.get(
-            f"{self.base_url}/ancestors/{event_id}",
+            f"{self.http_addr}/ancestors/{event_id}",
             timeout=self.timeout,
         )
 
@@ -203,7 +204,7 @@ class Client:
             params = {"view": view}
 
         r = self.session.get(
-            f"{self.base_url}/descendants/{event_id}",
+            f"{self.http_addr}/descendants/{event_id}",
             params=params,
             timeout=self.timeout,
         )
@@ -230,7 +231,7 @@ class Client:
             body["view"] = view
 
         r = self.session.post(
-            f"{self.base_url}/descendants",
+            f"{self.http_addr}/descendants",
             data=json.dumps(body),
             timeout=self.timeout,
         )
@@ -246,7 +247,7 @@ class Client:
             params = {"view": view}
 
         r = self.session.get(
-            f"{self.base_url}/provenance/{event_id}",
+            f"{self.http_addr}/provenance/{event_id}",
             params=params,
             timeout=self.timeout,
         )
@@ -273,7 +274,7 @@ class Client:
             body["view"] = view
 
         r = self.session.post(
-            f"{self.base_url}/provenance",
+            f"{self.http_addr}/provenance",
             data=json.dumps(body),
             timeout=self.timeout,
         )
@@ -285,7 +286,7 @@ class Client:
         self.init_session()
 
         r = self.session.get(
-            f"{self.base_url}/heads",
+            f"{self.http_addr}/heads",
             timeout=self.timeout,
         )
 
@@ -296,7 +297,7 @@ class Client:
         self.init_session()
         try:
             r = self.session.get(
-                f"{self.base_url}/healthz",
+                f"{self.http_addr}/healthz",
                 timeout=self.timeout,
             )
             return r.status_code == 200
@@ -307,7 +308,7 @@ class Client:
         self.init_session()
 
         r = self.session.get(
-            f"{self.base_url}/version",
+            f"{self.http_addr}/version",
             timeout=self.timeout,
         )
 
@@ -328,12 +329,11 @@ class Client:
 
         def _run():
             with self.session.get(
-                f"{self.base_url}/subscribe",
+                f"{self.http_addr}/subscribe",
                 stream=True,
                 timeout=None,
             ) as r:
                 r.raise_for_status()
-                buf = ""
                 for line in r.iter_lines(decode_unicode=True):
                     if not line:
                         continue
