@@ -1,6 +1,6 @@
 # CelestialTree PyClient
 
-一个轻量级的 Python 客户端，用于与 **CelestialTree** 交互，提供事件上报、血缘（lineage）追踪以及基础查询能力。
+一个轻量级的 Python 客户端，用于与 [CelestialTree](https://github.com/Mr-xiaotian/CelestialTree) 交互，提供事件上报、血缘（lineage）追踪以及基础查询能力。
 
 该客户端被设计为可嵌入到任务系统中（例如 CelestialFlow），用于记录并追踪任务在因果事件树中的完整生命周期。
 
@@ -35,10 +35,17 @@ event_id = client.emit(
 print(event_id)
 ```
 
-## 参与贡献
+## Star 历史趋势（Star History）
 
-欢迎任何形式的贡献！你可以提交 issue、功能请求，或者直接发起 pull request。
+如果对项目感兴趣的话，欢迎star。如果有问题或者建议的话, 欢迎提交[Issues](https://github.com/Mr-xiaotian/celestialtree-pyclient/issues)或者在[Discussion](https://github.com/Mr-xiaotian/celestialtree-pyclient/discussions)中告诉我。
 
-## 许可证
+[![Star History Chart](https://api.star-history.com/svg?repos=Mr-xiaotian/celestialtree-pyclient&type=Date)](https://star-history.com/#Mr-xiaotian/celestialtree-pyclient&Date)
 
-本项目采用 MIT License 许可证，详情请参阅 [LICENSE](LICENSE) 文件。
+## 许可（License）
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 作者（Author）
+Author: Mr-xiaotian
+Email: mingxiaomingtian@gmail.com
+Project Link: [https://github.com/Mr-xiaotian/celestialtree-pyclient](https://github.com/Mr-xiaotian/celestialtree-pyclient)
+
