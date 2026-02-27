@@ -21,11 +21,9 @@ class Client:
         host: str = "127.0.0.1",
         http_port: int = 7777,
         grpc_port: int = 7778,
-
         timeout: float = 5.0,
         grpc_secure: bool = False,
         transport: Optional[str] = None,
-
     ):
         self.http_addr = f"http://{host}:{http_port}"
         self.grpc_addr = f"{host}:{grpc_port}"
@@ -62,7 +60,7 @@ class Client:
     def raise_for_status(self, r: requests.Response):
         if 200 <= r.status_code < 300:
             return
-        
+
         try:
             j: dict = r.json()
             error = j.get("error", "request failed")
@@ -158,7 +156,9 @@ class Client:
             resp = self.grpc_stub.Emit(req, timeout=self.timeout)
         except grpc.RpcError as e:
             # 给你一个更像 HTTP raise_for_status 的报错体验
-            raise RuntimeError(f"grpc emit failed: {e.code().name}: {e.details()}") from e
+            raise RuntimeError(
+                f"grpc emit failed: {e.code().name}: {e.details()}"
+            ) from e
 
         return int(resp.id)
 

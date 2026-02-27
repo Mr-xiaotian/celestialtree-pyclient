@@ -9,7 +9,7 @@ class NullClient:
         with self.event_id.get_lock():
             self.event_id.value += 1
             return self.event_id.value
-        
+
     def emit_grpc(self, *args, **kwargs):
         return self.emit(*args, **kwargs)
 

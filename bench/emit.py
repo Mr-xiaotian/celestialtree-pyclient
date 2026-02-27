@@ -13,10 +13,13 @@ from celestialtree import Client
 def now_ms() -> float:
     return time.perf_counter() * 1000.0
 
+
 CTREE_HOST = "127.0.0.1"
 CTREE_HTTP_PORT = 7777
 CTREE_GRPC_PORT = 7778
-ctree_client = Client(host=CTREE_HOST, http_port=CTREE_HTTP_PORT, grpc_port=CTREE_GRPC_PORT)
+ctree_client = Client(
+    host=CTREE_HOST, http_port=CTREE_HTTP_PORT, grpc_port=CTREE_GRPC_PORT
+)
 
 # ===============================
 # 单个 Emit 任务的执行函数
@@ -26,7 +29,7 @@ ctree_client = Client(host=CTREE_HOST, http_port=CTREE_HTTP_PORT, grpc_port=CTRE
 def emit_once_http(payload_size, _) -> float:
     """
     Docstring for emit_once_http
-    
+
     :param payload_size: Description
     :param _: Description
     :return: Description
@@ -49,7 +52,7 @@ def emit_once_http(payload_size, _) -> float:
 def emit_once_grpc(payload_size, _) -> float:
     """
     Docstring for emit_once_grpc
-    
+
     :param payload_size: Description
     :param _: Description
     :return: Description
@@ -73,6 +76,7 @@ def emit_once_grpc(payload_size, _) -> float:
 # TaskExecutor：Emit Bench
 # ===============================
 
+
 class EmitBenchExecutor(TaskExecutor):
     def process_result_dict(self):
         results_list = []
@@ -86,6 +90,7 @@ class EmitBenchExecutor(TaskExecutor):
 # ===============================
 # 主入口
 # ===============================
+
 
 def print_stats(args, results, elapsed):
     lat_ms = [r for r in results if isinstance(r, (int, float))]
@@ -111,6 +116,7 @@ def print_stats(args, results, elapsed):
         f"max={max(lat_ms):.2f})"
     )
 
+
 def main_http():
     ap = argparse.ArgumentParser()
     ap.add_argument("--n", type=int, default=10000)
@@ -119,10 +125,7 @@ def main_http():
     args = ap.parse_args()
 
     # ---- 构造任务列表 ----
-    task_list = [
-        (args.payload_bytes, index)
-        for index in range(args.n)
-    ]
+    task_list = [(args.payload_bytes, index) for index in range(args.n)]
 
     # ---- TaskExecutor ----
     executor = EmitBenchExecutor(
@@ -143,6 +146,7 @@ def main_http():
     # ---- 统计 ----
     print_stats(args, results, elapsed)
 
+
 def main_grpc():
     ap = argparse.ArgumentParser()
     ap.add_argument("--n", type=int, default=10000)
@@ -151,10 +155,7 @@ def main_grpc():
     args = ap.parse_args()
 
     # ---- 构造任务列表 ----
-    task_list = [
-        (args.payload_bytes, index)
-        for index in range(args.n)
-    ]
+    task_list = [(args.payload_bytes, index) for index in range(args.n)]
 
     # ---- TaskExecutor ----
     executor = EmitBenchExecutor(
