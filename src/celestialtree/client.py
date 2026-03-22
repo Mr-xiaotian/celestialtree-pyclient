@@ -1,7 +1,7 @@
 import json
 import threading
 import requests
-from typing import List, Optional, Dict, Any, Callable
+from typing import Optional, Any, Callable
 
 import grpc
 from google.protobuf import json_format
@@ -74,7 +74,7 @@ class Client:
     def emit(
         self,
         type_: str,
-        parents: Optional[List[int]] = None,
+        parents: Optional[list[int]] = None,
         message: Optional[str] = None,
         payload: Optional[list | dict] = None,
     ) -> int:
@@ -88,7 +88,7 @@ class Client:
     def emit_http(
         self,
         type_: str,
-        parents: Optional[List[int]] = None,
+        parents: Optional[list[int]] = None,
         message: Optional[str] = None,
         payload: Optional[list | dict] = None,
     ) -> int:
@@ -123,7 +123,7 @@ class Client:
     def emit_grpc(
         self,
         type_: str,
-        parents: Optional[List[int]] = None,
+        parents: Optional[list[int]] = None,
         message: Optional[str] = None,
         payload: Optional[list | dict] = None,
     ) -> int:
@@ -162,7 +162,7 @@ class Client:
 
         return int(resp.id)
 
-    def get_event(self, event_id: int) -> Dict[str, Any]:
+    def get_event(self, event_id: int) -> dict[str, Any]:
         self.init_session()
 
         r = self.session.get(
@@ -173,7 +173,7 @@ class Client:
         self.raise_for_status(r)
         return r.json()
 
-    def children(self, event_id: int) -> List[int]:
+    def children(self, event_id: int) -> list[int]:
         self.init_session()
 
         r = self.session.get(
@@ -184,7 +184,7 @@ class Client:
         self.raise_for_status(r)
         return r.json()
 
-    def ancestors(self, event_id: int) -> List[int]:
+    def ancestors(self, event_id: int) -> list[int]:
         self.init_session()
 
         r = self.session.get(
@@ -195,7 +195,7 @@ class Client:
         self.raise_for_status(r)
         return r.json()
 
-    def descendants(self, event_id: int, view: str = "struct") -> Dict[str, Any]:
+    def descendants(self, event_id: int, view: str = "struct") -> dict[str, Any]:
         self.init_session()
 
         params = None
@@ -213,8 +213,8 @@ class Client:
         return r.json()
 
     def descendants_batch(
-        self, event_ids: List[int], view: str = "struct"
-    ) -> List[Dict[str, Any]]:
+        self, event_ids: list[int], view: str = "struct"
+    ) -> list[dict[str, Any]]:
         """
         Batch descendants.
         POST /descendants
@@ -226,7 +226,7 @@ class Client:
         if not event_ids:
             raise ValueError("event_ids is required")
 
-        body: Dict[str, Any] = {"ids": event_ids}
+        body: dict[str, Any] = {"ids": event_ids}
         if view and view != "struct":
             body["view"] = view
 
@@ -239,7 +239,7 @@ class Client:
         self.raise_for_status(r)
         return r.json()
 
-    def provenance(self, event_id: int, view: str = "struct") -> Dict[str, Any]:
+    def provenance(self, event_id: int, view: str = "struct") -> dict[str, Any]:
         self.init_session()
 
         params = None
@@ -256,8 +256,8 @@ class Client:
         return r.json()
 
     def provenance_batch(
-        self, event_ids: List[int], view: str = "struct"
-    ) -> List[Dict[str, Any]]:
+        self, event_ids: list[int], view: str = "struct"
+    ) -> list[dict[str, Any]]:
         """
         Batch provenance (parents tree).
         POST /provenance
@@ -269,7 +269,7 @@ class Client:
         if not event_ids:
             raise ValueError("event_ids is required")
 
-        body: Dict[str, Any] = {"ids": event_ids}
+        body: dict[str, Any] = {"ids": event_ids}
         if view and view != "struct":
             body["view"] = view
 
@@ -281,12 +281,34 @@ class Client:
 
         self.raise_for_status(r)
         return r.json()
+    
+    def roots(self) -> list[int]:
+        self.init_session()
 
-    def heads(self) -> List[int]:
+        r = self.session.get(
+            f"{self.http_addr}/roots",
+            timeout=self.timeout,
+        )
+
+        self.raise_for_status(r)
+        return r.json()
+
+    def heads(self) -> list[int]:
         self.init_session()
 
         r = self.session.get(
             f"{self.http_addr}/heads",
+            timeout=self.timeout,
+        )
+
+        self.raise_for_status(r)
+        return r.json()
+    
+    def snapshot(self) -> dict[str, Any]:
+        self.init_session()
+
+        r = self.session.get(
+            f"{self.http_addr}/snapshot",
             timeout=self.timeout,
         )
 
@@ -304,7 +326,7 @@ class Client:
         except Exception:
             return False
 
-    def version(self) -> Dict[str, Any]:
+    def version(self) -> dict[str, Any]:
         self.init_session()
 
         r = self.session.get(
@@ -319,7 +341,7 @@ class Client:
 
     def subscribe(
         self,
-        on_event: Callable[[Dict[str, Any]], None],
+        on_event: Callable[[dict[str, Any]], None],
         daemon: bool = True,
     ) -> threading.Thread:
         """
