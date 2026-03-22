@@ -33,9 +33,21 @@ class NullClient:
 
     def provenance_batch(self, *args, **kwargs):
         return None
+    
+    def roots(self):
+        return []
 
     def heads(self):
         return []
+    
+    def snapshot(self):
+        return {}
+
+    def health(self):
+        return True
+    
+    def version(self):
+        return {}
 
     def subscribe(self, *args, **kwargs):
         return None
