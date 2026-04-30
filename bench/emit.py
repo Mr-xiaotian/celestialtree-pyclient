@@ -129,19 +129,21 @@ def main_http():
 
     # ---- TaskExecutor ----
     executor = EmitBenchExecutor(
+        "emit-http",
         emit_once_http,
         execution_mode="thread",
-        worker_limit=args.c,
+        max_workers=args.c,
         unpack_task_args=True,
-        enable_success_cache=True,
-        show_progress=True,
-        progress_desc="emit-http",
     )
 
     start = time.perf_counter()
     executor.start(task_list)
     elapsed = time.perf_counter() - start
-    results = executor.process_result_dict()
+    
+    results = []
+
+    for _, result in executor.get_success_pairs():
+        results.append(result)
 
     # ---- 统计 ----
     print_stats(args, results, elapsed)
@@ -159,19 +161,21 @@ def main_grpc():
 
     # ---- TaskExecutor ----
     executor = EmitBenchExecutor(
+        "emit-grpc",
         emit_once_grpc,
         execution_mode="thread",
-        worker_limit=args.c,
+        max_workers=args.c,
         unpack_task_args=True,
-        enable_success_cache=True,
-        show_progress=True,
-        progress_desc="emit-grpc",
     )
 
     start = time.perf_counter()
     executor.start(task_list)
     elapsed = time.perf_counter() - start
-    results = executor.process_result_dict()
+    
+    results = []
+
+    for _, result in executor.get_success_pairs():
+        results.append(result)
 
     # ---- 统计 ----
     print_stats(args, results, elapsed)
