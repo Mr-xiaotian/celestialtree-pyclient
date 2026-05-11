@@ -25,6 +25,16 @@ class Client:
         grpc_secure: bool = False,
         transport: Optional[str] = None,
     ):
+        """
+        初始化 CelestialTree 客户端。
+
+        :param host: 服务地址
+        :param http_port: HTTP 端口
+        :param grpc_port: gRPC 端口
+        :param timeout: 请求超时时间（秒）
+        :param grpc_secure: 是否使用 TLS 连接 gRPC
+        :param transport: 传输方式，"http" 或 "grpc"，默认 "http"
+        """
         self.http_addr = f"http://{host}:{http_port}"
         self.grpc_addr = f"{host}:{grpc_port}"
 
@@ -34,6 +44,9 @@ class Client:
         self.transport = transport if transport in ("http", "grpc") else "http"
 
     def init_session(self):
+        """
+        初始化 HTTP 会话（懒加载，仅首次调用时创建）。
+        """
         if hasattr(self, "session"):
             return
 
@@ -46,6 +59,9 @@ class Client:
         )
 
     def init_grpc(self):
+        """
+        初始化 gRPC channel 和 stub（懒加载，仅首次调用时创建）。
+        """
         if hasattr(self, "grpc_channel") and hasattr(self, "grpc_stub"):
             return
 
@@ -58,6 +74,11 @@ class Client:
         self.grpc_stub = pb2_grpc.CelestialTreeServiceStub(self.grpc_channel)
 
     def raise_for_status(self, r: requests.Response) -> None:
+        """
+        检查 HTTP 响应状态码，非 2xx 时抛出 RuntimeError。
+
+        :param r: HTTP 响应对象
+        """
         if 200 <= r.status_code < 300:
             return
 
@@ -79,7 +100,13 @@ class Client:
         payload: Optional[list[Any] | dict[str, Any]] = None,
     ) -> int:
         """
-        Emit a new event into CelestialTree.
+        发射一个新事件到 CelestialTree，根据 transport 选择 HTTP 或 gRPC。
+
+        :param type_: 事件类型
+        :param parents: 父事件 ID 列表
+        :param message: 事件消息
+        :param payload: 事件载荷，支持 dict 或 list
+        :return: 新事件 ID
         """
         if self.transport == "grpc":
             return self.emit_grpc(type_, parents, message, payload)
@@ -93,7 +120,13 @@ class Client:
         payload: Optional[list[Any] | dict[str, Any]] = None,
     ) -> int:
         """
-        Emit a new event into CelestialTree.
+        通过 HTTP 发射一个新事件到 CelestialTree。
+
+        :param type_: 事件类型
+        :param parents: 父事件 ID 列表
+        :param message: 事件消息
+        :param payload: 事件载荷，支持 dict 或 list
+        :return: 新事件 ID
         """
         self.init_session()
 
@@ -125,8 +158,13 @@ class Client:
         payload: Optional[list[Any] | dict[str, Any]] = None,
     ) -> int:
         """
-        Emit a new event into CelestialTree via gRPC.
-        Requires grpcio + generated pb2 / pb2_grpc.
+        通过 gRPC 发射一个新事件到 CelestialTree。
+
+        :param type_: 事件类型
+        :param parents: 父事件 ID 列表
+        :param message: 事件消息
+        :param payload: 事件载荷，支持 dict 或 list
+        :return: 新事件 ID
         """
         self.init_grpc()
 
@@ -155,6 +193,12 @@ class Client:
         return int(resp.id)  # type: ignore[union-attr]
 
     def get_event(self, event_id: int) -> dict[str, Any]:
+        """
+        获取指定事件的详细信息。
+
+        :param event_id: 事件 ID
+        :return: 事件详情字典
+        """
         self.init_session()
 
         r = self.session.get(
@@ -166,6 +210,12 @@ class Client:
         return r.json()
 
     def children(self, event_id: int) -> list[int]:
+        """
+        获取指定事件的直接子事件 ID 列表。
+
+        :param event_id: 事件 ID
+        :return: 子事件 ID 列表
+        """
         self.init_session()
 
         r = self.session.get(
@@ -177,6 +227,12 @@ class Client:
         return r.json()
 
     def ancestors(self, event_id: int) -> list[int]:
+        """
+        获取指定事件的所有祖先事件 ID 列表。
+
+        :param event_id: 事件 ID
+        :return: 祖先事件 ID 列表
+        """
         self.init_session()
 
         r = self.session.get(
@@ -188,6 +244,13 @@ class Client:
         return r.json()
 
     def descendants(self, event_id: int, view: str = "struct") -> dict[str, Any]:
+        """
+        获取指定事件的后代树。
+
+        :param event_id: 事件 ID
+        :param view: 视图格式，"struct" 或 "meta"
+        :return: 后代树结构
+        """
         self.init_session()
 
         params = None
@@ -208,10 +271,11 @@ class Client:
         self, event_ids: list[int], view: str = "struct"
     ) -> list[dict[str, Any]]:
         """
-        Batch descendants.
-        POST /descendants
-        body: {"ids":[...], "view":"struct|meta"}
-        response: [tree, tree, ...]
+        批量获取多个事件的后代树。
+
+        :param event_ids: 事件 ID 列表
+        :param view: 视图格式，"struct" 或 "meta"
+        :return: 后代树列表
         """
         self.init_session()
 
@@ -232,6 +296,13 @@ class Client:
         return r.json()
 
     def provenance(self, event_id: int, view: str = "struct") -> dict[str, Any]:
+        """
+        获取指定事件的溯源树（父链）。
+
+        :param event_id: 事件 ID
+        :param view: 视图格式，"struct" 或 "meta"
+        :return: 溯源树结构
+        """
         self.init_session()
 
         params = None
@@ -251,10 +322,11 @@ class Client:
         self, event_ids: list[int], view: str = "struct"
     ) -> list[dict[str, Any]]:
         """
-        Batch provenance (parents tree).
-        POST /provenance
-        body: {"ids":[...], "view":"struct|meta"}
-        response: [tree, tree, ...]
+        批量获取多个事件的溯源树。
+
+        :param event_ids: 事件 ID 列表
+        :param view: 视图格式，"struct" 或 "meta"
+        :return: 溯源树列表
         """
         self.init_session()
 
@@ -275,6 +347,11 @@ class Client:
         return r.json()
     
     def roots(self) -> list[int]:
+        """
+        获取所有根事件（无父节点）的 ID 列表。
+
+        :return: 根事件 ID 列表
+        """
         self.init_session()
 
         r = self.session.get(
@@ -286,6 +363,11 @@ class Client:
         return r.json()
 
     def heads(self) -> list[int]:
+        """
+        获取所有叶子事件（无子节点）的 ID 列表。
+
+        :return: 叶子事件 ID 列表
+        """
         self.init_session()
 
         r = self.session.get(
@@ -297,6 +379,11 @@ class Client:
         return r.json()
     
     def snapshot(self) -> dict[str, Any]:
+        """
+        获取当前事件图的快照。
+
+        :return: 快照数据
+        """
         self.init_session()
 
         r = self.session.get(
@@ -308,6 +395,11 @@ class Client:
         return r.json()
 
     def health(self) -> bool:
+        """
+        检查服务健康状态。
+
+        :return: 服务是否健康
+        """
         self.init_session()
         try:
             r = self.session.get(
@@ -319,6 +411,11 @@ class Client:
             return False
 
     def version(self) -> dict[str, Any]:
+        """
+        获取服务版本信息。
+
+        :return: 版本信息字典
+        """
         self.init_session()
 
         r = self.session.get(
@@ -337,8 +434,11 @@ class Client:
         daemon: bool = True,
     ) -> threading.Thread:
         """
-        Subscribe to SSE stream.
-        on_event will be called for each emitted Event.
+        订阅 SSE 事件流，每个事件触发 on_event 回调。
+
+        :param on_event: 事件回调函数，接收事件字典
+        :param daemon: 是否设置为守护线程
+        :return: 监听线程
         """
 
         def _run():

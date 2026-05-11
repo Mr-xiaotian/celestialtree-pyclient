@@ -2,7 +2,17 @@ from typing import Any, Optional
 
 
 class NullClient:
+    """
+    空实现的 CelestialTree 客户端，用于测试或不需要实际连接的场景。
+    所有方法返回空值，emit 方法使用本地自增 ID。
+    """
+
     def __init__(self, event_id: Optional[int] = None):
+        """
+        初始化空客户端。
+
+        :param event_id: 初始事件 ID，默认从 0 开始
+        """
         self.event_id: int = event_id if event_id is not None else 0
 
     def emit(self, *args: Any, **kwargs: Any) -> int:
