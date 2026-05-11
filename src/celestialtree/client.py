@@ -57,15 +57,15 @@ class Client:
 
         self.grpc_stub = pb2_grpc.CelestialTreeServiceStub(self.grpc_channel)
 
-    def raise_for_status(self, r: requests.Response):
+    def raise_for_status(self, r: requests.Response) -> None:
         if 200 <= r.status_code < 300:
             return
 
         try:
-            j: dict = r.json()
+            j: dict[str, Any] = r.json()
             error = j.get("error", "request failed")
             detail = j.get("detail")
-            raise RuntimeError(f"{error} ({detail})" if detail else error)
+            raise RuntimeError(f"{error} ({detail})" if detail else str(error))
         except Exception:
             raise RuntimeError(f"request failed: HTTP {r.status_code}: {r.text[:300]}")
 
@@ -76,7 +76,7 @@ class Client:
         type_: str,
         parents: Optional[list[int]] = None,
         message: Optional[str] = None,
-        payload: Optional[list | dict] = None,
+        payload: Optional[list[Any] | dict[str, Any]] = None,
     ) -> int:
         """
         Emit a new event into CelestialTree.
@@ -90,14 +90,14 @@ class Client:
         type_: str,
         parents: Optional[list[int]] = None,
         message: Optional[str] = None,
-        payload: Optional[list | dict] = None,
+        payload: Optional[list[Any] | dict[str, Any]] = None,
     ) -> int:
         """
         Emit a new event into CelestialTree.
         """
         self.init_session()
 
-        body = {
+        body: dict[str, Any] = {
             "type": type_,
             "parents": parents or [],
         }
@@ -106,10 +106,7 @@ class Client:
             body["message"] = message
 
         if payload is not None:
-            if isinstance(payload, (dict, list)):
-                body["payload"] = payload
-            else:
-                raise TypeError("payload must be JSON-serializable")
+            body["payload"] = payload
 
         r = self.session.post(
             f"{self.http_addr}/emit",
@@ -125,7 +122,7 @@ class Client:
         type_: str,
         parents: Optional[list[int]] = None,
         message: Optional[str] = None,
-        payload: Optional[list | dict] = None,
+        payload: Optional[list[Any] | dict[str, Any]] = None,
     ) -> int:
         """
         Emit a new event into CelestialTree via gRPC.
@@ -133,34 +130,29 @@ class Client:
         """
         self.init_grpc()
 
-        req = pb2.EmitRequest(
+        req = pb2.EmitRequest(  # type: ignore[attr-defined]
             type=type_,
             message=message or "",
             parents=parents or [],
         )
 
         if payload is not None:
-            if not isinstance(payload, (dict, list)):
-                raise TypeError("payload must be JSON-serializable (dict or list)")
-
             # proto field is google.protobuf.Struct (object). Struct 本身不支持 list 作为根。
             # 所以：dict 直接塞；list 根的话用 {"_": payload} 包一层（服务端再原样存 JSON）
-            if isinstance(payload, list):
-                payload = {"_": payload}
+            payload_dict: dict[str, Any] = {"_": payload} if isinstance(payload, list) else payload
 
             st = Struct()
-            json_format.ParseDict(payload, st)
-            req.payload.CopyFrom(st)
+            json_format.ParseDict(payload_dict, st)
+            req.payload.CopyFrom(st)  # type: ignore[union-attr]
 
         try:
-            resp = self.grpc_stub.Emit(req, timeout=self.timeout)
+            resp = self.grpc_stub.Emit(req, timeout=self.timeout)  # type: ignore[union-attr]
         except grpc.RpcError as e:
-            # 给你一个更像 HTTP raise_for_status 的报错体验
             raise RuntimeError(
                 f"grpc emit failed: {e.code().name}: {e.details()}"
             ) from e
 
-        return int(resp.id)
+        return int(resp.id)  # type: ignore[union-attr]
 
     def get_event(self, event_id: int) -> dict[str, Any]:
         self.init_session()

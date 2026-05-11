@@ -1,53 +1,52 @@
-from multiprocessing import Value as MPValue
+from typing import Any, Optional
 
 
 class NullClient:
-    def __init__(self, event_id=None):
-        self.event_id = event_id if event_id is not None else MPValue("i", 0)
+    def __init__(self, event_id: Optional[int] = None):
+        self.event_id: int = event_id if event_id is not None else 0
 
-    def emit(self, *args, **kwargs):
-        with self.event_id.get_lock():
-            self.event_id.value += 1
-            return self.event_id.value
+    def emit(self, *args: Any, **kwargs: Any) -> int:
+        self.event_id += 1
+        return self.event_id
 
-    def emit_grpc(self, *args, **kwargs):
+    def emit_grpc(self, *args: Any, **kwargs: Any) -> int:
         return self.emit(*args, **kwargs)
 
-    def get_event(self, *args, **kwargs):
+    def get_event(self, *args: Any, **kwargs: Any) -> None:
         return None
 
-    def children(self, *args, **kwargs):
+    def children(self, *args: Any, **kwargs: Any) -> list[int]:
         return []
 
-    def ancestors(self, *args, **kwargs):
+    def ancestors(self, *args: Any, **kwargs: Any) -> list[int]:
         return []
 
-    def descendants(self, *args, **kwargs):
+    def descendants(self, *args: Any, **kwargs: Any) -> None:
         return None
 
-    def descendants_batch(self, *args, **kwargs):
+    def descendants_batch(self, *args: Any, **kwargs: Any) -> None:
         return None
 
-    def provenance(self, *args, **kwargs):
+    def provenance(self, *args: Any, **kwargs: Any) -> None:
         return None
 
-    def provenance_batch(self, *args, **kwargs):
+    def provenance_batch(self, *args: Any, **kwargs: Any) -> None:
         return None
-    
-    def roots(self):
+
+    def roots(self) -> list[int]:
         return []
 
-    def heads(self):
+    def heads(self) -> list[int]:
         return []
-    
-    def snapshot(self):
+
+    def snapshot(self) -> dict[str, Any]:
         return {}
 
-    def health(self):
+    def health(self) -> bool:
         return True
-    
-    def version(self):
+
+    def version(self) -> dict[str, Any]:
         return {}
 
-    def subscribe(self, *args, **kwargs):
+    def subscribe(self, *args: Any, **kwargs: Any) -> None:
         return None
