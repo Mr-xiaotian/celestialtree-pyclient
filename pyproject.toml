@@ -60,5 +60,10 @@ asyncio_default_fixture_loop_scope = "function"
 dev = [
     "build>=1.2.2.post1",
     "twine>=6.1.0",
-    "celestialflow>=3.1.2"
+    "celestialflow>=3.1.2",
+    "pyright>=1.1.409",
 ]
+
+[tool.pyright]
+include = ["src"]
+strict = ["src"]
